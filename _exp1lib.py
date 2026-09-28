@@ -30,6 +30,20 @@ def W_edge(p, lam):
 
 
 def build_WE(params, mode='fp'):
+    if mode == 'fe':
+        # forced-excursion reading: the recon excursion is counted on the
+        # forward path (every mission flies it exactly once before delivery),
+        # with restart loops 2->1 and 4->1 in the denominator (Remark 1/E1).
+        W12 = W_edge(params['p1'], params['l1'])
+        W21 = W_edge(params['p2'], params['l2'])
+        W32 = W_edge(params['p3'], params['l3'])
+        W23 = W_edge(params['p3'], params['l3'])
+        W24 = W_edge(params['p4'], params['l4'])
+        W45 = W_edge(params['p5'], params['l5'])
+        W41 = W_edge(params['p6'], params['l6'])
+        F = W12 * W23 * W32 * W24 * W45
+        return sp.cancel(sp.together(
+            F / (1 - (W12 * W23 * W32 * W24 * W41 + W12 * W21))))
     gm = {n: sp.Symbol('g_' + n) for n in NODES}
     gm[SINK] = sp.Integer(1)
     unk = [gm[n] for n in NODES if n != SINK]

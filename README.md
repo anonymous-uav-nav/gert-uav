@@ -25,7 +25,7 @@ All experiments are single-threaded and run on a laptop CPU.
 | file | what it does |
 |---|---|
 | `_exp1lib.py` | core library: W_E construction (linear system + Mason), residue analysis, window probability, Monte Carlo ground truth, well-posedness check |
-| `exp1_generalized_solver.py` | E1-E4: solver validation (independent symbolic Mason cross-check), analytic-vs-MC cross-validation, E3 sensitivity ranking, E4 routes x wind grid |
+| `exp1_generalized_solver.py` | E1-E4: solver validation + fp/fe excursion-semantics comparison (independent symbolic Mason cross-check), analytic-vs-MC cross-validation, E3 sensitivity ranking, E4 routes x wind grid (incl. per-route completion prob / E[T\|done] at kappa=1) |
 | `exp2_qlearning.py` | E5: wind-adaptive branch-rate correction via tabular Q-learning (GERT-in-the-loop) |
 | `exp3_case.py` | E6: 6-node inspection topology (topology-agnostic solver) |
 | `exp7_robustness.py` | E7: E1-E3 conclusions across three parameter groups (baseline / strong wind / high loss) |

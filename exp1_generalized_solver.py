@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """exp1_generalized_solver.py — 新论文核心实验 1
-E1 通用 GERT 等效 W 函数（fp 语义）+ 独立 Mason 公式符号等价验证
+E1 通用 GERT 等效 W 函数（fp/fe 语义对比）+ 独立 Mason 公式符号等价验证
 E2 良构参数集：解析 vs MC 交叉验证
 E3 灵敏度
 E4 航线 x 风级网格
@@ -30,6 +30,19 @@ def W_edge(p, lam):
 
 
 def build_WE(params, mode='fp'):
+    if mode == 'fe':
+        # forced-excursion reading: recon excursion counted on the forward
+        # path (Remark 1/E1); restart loops 2->1 and 4->1 in denominator.
+        W12 = W_edge(params['p1'], params['l1'])
+        W21 = W_edge(params['p2'], params['l2'])
+        W23 = W_edge(params['p3'], params['l3'])
+        W32 = W_edge(params['p3'], params['l3'])
+        W24 = W_edge(params['p4'], params['l4'])
+        W45 = W_edge(params['p5'], params['l5'])
+        W41 = W_edge(params['p6'], params['l6'])
+        F = W12 * W23 * W32 * W24 * W45
+        return sp.cancel(sp.together(
+            F / (1 - (W12 * W23 * W32 * W24 * W41 + W12 * W21))))
     gm = {n: sp.Symbol('g_' + n) for n in NODES}
     gm[SINK] = sp.Integer(1)
     unk = [gm[n] for n in NODES if n != SINK]
@@ -145,6 +158,11 @@ print("  fp == independent Mason reduction:",
 a_fp = analyze(WE_fp, 3.14, 6.14)
 print("  fp I(3.14,6.14)=%.9f  W0=%.6f  E[T|done]=%.4f"
       % (a_fp['I'], a_fp['W0'], a_fp['ET']/a_fp['W0']))
+WE_fe = build_WE(BASE, 'fe')
+a_fe = analyze(WE_fe, 3.14, 6.14)
+print("  fe I(3.14,6.14)=%.9f  W0=%.6f  E[T|done]=%.4f"
+      % (a_fe['I'], a_fe['W0'], a_fe['ET']/a_fe['W0']))
+print("  semantics shift fp - fe = %.6f" % (a_fp['I'] - a_fe['I']))
 
 # ================= E2 =================
 print("=" * 70)
@@ -214,6 +232,13 @@ for kappa in (1.0, 1.5, 2.0):
         p['p3'] = ROUTES[r][1]
         analyze(build_WE(p, 'fp'), lo_w, hi_w)
 print("  9-cell grid analytic time: %.2f s" % (time.perf_counter() - t0))
+print("  routes at kappa=1.0 (W0 / E[T|done]):")
+for _r in ('A', 'B', 'C'):
+    _p = dict(BASE)
+    _p['l3'], _p['p3'] = ROUTES[_r]
+    _a = analyze(build_WE(_p, 'fp'), lo_w, hi_w)
+    print("    %s: W0=%.6f  E[T|done]=%.4f"
+          % (_r, _a['W0'], _a['ET'] / _a['W0']))
 argmaxes = set(best.values())
 if len(argmaxes) > 1:
     print("  >> optimal route VARIES with wind -> adaptation necessary")
