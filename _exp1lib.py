@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """exp1_generalized_solver.py — 新论文核心实验 1
-E1 通用 GERT 等效 W 函数（eq2/fp 双语义）+ 回归验证
+E1 通用 GERT 等效 W 函数（fp 语义）+ 独立 Mason 公式符号等价验证
 E2 良构参数集：解析 vs MC 交叉验证
 E3 灵敏度
 E4 航线 x 风级网格
@@ -30,16 +30,6 @@ def W_edge(p, lam):
 
 
 def build_WE(params, mode='fp'):
-    if mode == 'eq2':
-        W12 = W_edge(params['p1'], params['l1'])
-        W21 = W_edge(params['p2'], params['l2'])
-        W23 = W_edge(params['p3'], params['l3'])
-        W32 = W_edge(params['p3'], params['l3'])
-        W24 = W_edge(params['p4'], params['l4'])
-        W45 = W_edge(params['p5'], params['l5'])
-        W41 = W_edge(params['p6'], params['l6'])
-        F = W12 * W23 * W32 * W24 * W45
-        return sp.cancel(sp.together(F / (1 - (W12 * W23 * W32 * W24 * W41 + W12 * W21))))
     gm = {n: sp.Symbol('g_' + n) for n in NODES}
     gm[SINK] = sp.Integer(1)
     unk = [gm[n] for n in NODES if n != SINK]
@@ -140,8 +130,6 @@ def wellposed(params):
     return all(v <= 1 + 1e-12 for v in out.values()), out
 
 
-PAPER_P = dict(p1=0.9, p2=0.3, p3=0.9, p4=0.9, p5=0.6, p6=0.3,
-               l1=1.0, l2=0.1, l3=1.1, l4=1.0, l5=1.1, l6=0.1)
 BASE = dict(p1=0.9, p2=0.15, p3=0.4, p4=0.35, p5=0.7, p6=0.2,
             l1=1.0, l2=0.5, l3=1.1, l4=1.0, l5=0.9, l6=0.4)
 

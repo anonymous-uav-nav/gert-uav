@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """exp1_generalized_solver.py — 新论文核心实验 1
-E1 通用 GERT 等效 W 函数（eq2/fp 双语义）+ 回归验证
+E1 通用 GERT 等效 W 函数（fp 语义）+ 独立 Mason 公式符号等价验证
 E2 良构参数集：解析 vs MC 交叉验证
 E3 灵敏度
 E4 航线 x 风级网格
@@ -30,16 +30,6 @@ def W_edge(p, lam):
 
 
 def build_WE(params, mode='fp'):
-    if mode == 'eq2':
-        W12 = W_edge(params['p1'], params['l1'])
-        W21 = W_edge(params['p2'], params['l2'])
-        W23 = W_edge(params['p3'], params['l3'])
-        W32 = W_edge(params['p3'], params['l3'])
-        W24 = W_edge(params['p4'], params['l4'])
-        W45 = W_edge(params['p5'], params['l5'])
-        W41 = W_edge(params['p6'], params['l6'])
-        F = W12 * W23 * W32 * W24 * W45
-        return sp.cancel(sp.together(F / (1 - (W12 * W23 * W32 * W24 * W41 + W12 * W21))))
     gm = {n: sp.Symbol('g_' + n) for n in NODES}
     gm[SINK] = sp.Integer(1)
     unk = [gm[n] for n in NODES if n != SINK]
@@ -132,39 +122,29 @@ def wellposed(params):
     return all(v <= 1 + 1e-12 for v in out.values()), out
 
 
-PAPER_P = dict(p1=0.9, p2=0.3, p3=0.9, p4=0.9, p5=0.6, p6=0.3,
-               l1=1.0, l2=0.1, l3=1.1, l4=1.0, l5=1.1, l6=0.1)
 BASE = dict(p1=0.9, p2=0.15, p3=0.4, p4=0.35, p5=0.7, p6=0.2,
             l1=1.0, l2=0.5, l3=1.1, l4=1.0, l5=0.9, l6=0.4)
 
 # ================= E1 =================
 print("=" * 70)
-print("E1  regression + fp vs eq(2) semantics (paper params)")
-WE_eq2 = build_WE(PAPER_P, 'eq2')
-a_eq2 = analyze(WE_eq2, 4.44, 4.8)
-print("  eq(2) I(4.44,4.8) = %.9f" % a_eq2['I'])
-print("  regression %s" % ("PASS" if abs(a_eq2['I'] - 0.028225758) < 1e-6 else "FAIL"))
-W12 = W_edge(PAPER_P['p1'], PAPER_P['l1'])
-W21 = W_edge(PAPER_P['p2'], PAPER_P['l2'])
-W23 = W_edge(PAPER_P['p3'], PAPER_P['l3'])
+print("E1  solver validation: independent symbolic Mason check (fp semantics)")
+WE_fp = build_WE(BASE, 'fp')
+W12 = W_edge(BASE['p1'], BASE['l1'])
+W21 = W_edge(BASE['p2'], BASE['l2'])
+W23 = W_edge(BASE['p3'], BASE['l3'])
 W32 = W23
-W24 = W_edge(PAPER_P['p4'], PAPER_P['l4'])
-W45 = W_edge(PAPER_P['p5'], PAPER_P['l5'])
-W41 = W_edge(PAPER_P['p6'], PAPER_P['l6'])
-WE_mason = mason_WE([(W12 * W23 * W32 * W24 * W45, frozenset('12345'))],
-                    [(W12 * W21, frozenset('12')),
-                     (W12 * W23 * W32 * W24 * W41, frozenset('1234'))])
-print("  mason == eq(2):", sp.simplify(sp.together(WE_mason - WE_eq2)) == 0)
-WE_fp = build_WE(PAPER_P, 'fp')
-a_fp = analyze(WE_fp, 4.44, 4.8)
+W24 = W_edge(BASE['p4'], BASE['l4'])
+W45 = W_edge(BASE['p5'], BASE['l5'])
+W41 = W_edge(BASE['p6'], BASE['l6'])
 WE_fpm = mason_WE([(W12 * W24 * W45, frozenset('1245'))],
                   [(W12 * W21, frozenset('12')),
                    (W23 * W32, frozenset('23')),
                    (W12 * W24 * W41, frozenset('124'))])
-print("  fp == correct Mason:", sp.cancel(sp.together(WE_fp - WE_fpm)) == 0)
-print("  fp I(4.44,4.8)=%.9f  W0=%.6f  E[T]=%.4f"
-      % (a_fp['I'], a_fp['W0'], a_fp['ET']))
-print("  >> eq(2) vs fp: dI = %+.9f" % (a_fp['I'] - a_eq2['I']))
+print("  fp == independent Mason reduction:",
+      sp.cancel(sp.together(WE_fp - WE_fpm)) == 0)
+a_fp = analyze(WE_fp, 3.14, 6.14)
+print("  fp I(3.14,6.14)=%.9f  W0=%.6f  E[T|done]=%.4f"
+      % (a_fp['I'], a_fp['W0'], a_fp['ET']/a_fp['W0']))
 
 # ================= E2 =================
 print("=" * 70)
