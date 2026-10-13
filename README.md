@@ -38,6 +38,7 @@ All experiments are single-threaded and run on a laptop CPU.
 | `exp13_erlang2.py` | E13: distribution robustness — Erlang-2 segments via the phase-type pipeline (expm-based window integral, immune to pole coalescence) |
 | `exp14_sens_relative.py` | E14: sensitivity under +10% relative vs +0.1 absolute perturbation, window re-centering, and width sweep |
 | `exp15_closedform.py` | E15: closed-form window integral vs grid quadrature cross-check (max diff 1.4e-12) |
+| `exp16_wellposedness.py` | E16: transience verification (spectral radius), fixed-window 5v6 topology comparison, and probability-matched control |
 | `exp_rate_convention.py` | numerical counterexample for the rate-by-branch vs rate-by-head-node convention (Remark 2) |
 | `fig1_topology.py` | reference topology figure (600 dpi) |
 | `figs.py` | remaining paper figures |
@@ -60,6 +61,7 @@ python exp12_rrt.py                  # E12 RRT* comparison
 python exp13_erlang2.py              # E13 Erlang-2 robustness
 python exp14_sens_relative.py        # E14 normalization + window semantics
 python exp15_closedform.py           # E15 closed-form cross-check
+python exp16_wellposedness.py        # E16 transience + fixed-window + probability-matched control
 python exp_rate_convention.py        # Remark 2 counterexample
 ```
 
@@ -83,6 +85,7 @@ figures to the working directory when re-run.
 | E13 Erlang-2 robustness | `exp13_erlang2.py` | stdout |
 | E14 normalization + window semantics | `exp14_sens_relative.py` | stdout |
 | E15 closed-form cross-check | `exp15_closedform.py` | stdout |
+| E16 transience + fixed-window + probability-matched control | `exp16_wellposedness.py` | stdout |
 | Remark 2 counterexample | `exp_rate_convention.py` | stdout |
 | Fig. 1 topologies | `fig1_topology.py` | `fig1_topology.png` |
 | Figs. 2-5 | `figs.py` | `fig2`-`fig5` |
